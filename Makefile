@@ -24,6 +24,10 @@ else
 	OTHER_BUILD_DIR := $(DEBUG_BUILD_DIR)
 endif
 
+# GRPC support
+GRPC_CPP_PLUGIN = grpc_cpp_plugin
+GRPC_CPP_PLUGIN_PATH ?= `which $(GRPC_CPP_PLUGIN)`
+
 # All of the directories containing code.
 SRC_DIRS := $(shell find * -type d -exec bash -c "find {} -maxdepth 1 \
 	\( -name '*.cpp' -o -name '*.proto' \) | grep -q ." \; -print)
@@ -99,10 +103,10 @@ MAT$(PROJECT)_SO := matlab/+$(PROJECT)/private/$(PROJECT)_.$(MAT_SO_EXT)
 ##############################
 # The generated files for protocol buffers
 PROTO_GEN_HEADER_SRCS := $(addprefix $(PROTO_BUILD_DIR)/, \
-		$(notdir ${PROTO_SRCS:.proto=.pb.h}))
+		$(notdir ${PROTO_SRCS:.proto=.pb.h}) $(notdir ${PROTO_SRCS:.proto=.grpc.pb.h}))
 PROTO_GEN_HEADER := $(addprefix $(PROTO_BUILD_INCLUDE_DIR)/, \
-		$(notdir ${PROTO_SRCS:.proto=.pb.h}))
-PROTO_GEN_CC := $(addprefix $(BUILD_DIR)/, ${PROTO_SRCS:.proto=.pb.cc})
+		$(notdir ${PROTO_SRCS:.proto=.pb.h}) $(notdir ${PROTO_SRCS:.proto=.grpc.pb.h}))
+PROTO_GEN_CC := $(addprefix $(BUILD_DIR)/, ${PROTO_SRCS:.proto=.pb.cc} ${PROTO_SRCS:.proto=.grpc.pb.cc})
 PY_PROTO_BUILD_DIR := python/$(PROJECT)/proto
 PY_PROTO_INIT := python/$(PROJECT)/proto/__init__.py
 PROTO_GEN_PY := $(foreach file,${PROTO_SRCS:.proto=_pb2.py}, \
@@ -178,7 +182,7 @@ ifneq ($(CPU_ONLY), 1)
 	LIBRARIES := cudart cublas curand
 endif
 
-LIBRARIES += glog gflags protobuf boost_system boost_filesystem m hdf5_hl hdf5
+LIBRARIES += glog gflags protobuf boost_system boost_filesystem m hdf5_hl hdf5 grpc
 
 # handle IO dependencies
 USE_LEVELDB ?= 1
@@ -405,11 +409,15 @@ CXXFLAGS += -MMD -MP
 
 # Complete build flags.
 COMMON_FLAGS += $(foreach includedir,$(INCLUDE_DIRS),-I$(includedir))
-CXXFLAGS += -pthread -fPIC $(COMMON_FLAGS) $(WARNINGS)
+CXXFLAGS += -pthread -fPIC $(COMMON_FLAGS) $(WARNINGS) 
 NVCCFLAGS += -ccbin=$(CXX) -Xcompiler -fPIC $(COMMON_FLAGS)
 # mex may invoke an older gcc that is too liberal with -Wuninitalized
 MATLAB_CXXFLAGS := $(CXXFLAGS) -Wno-uninitialized
-LINKFLAGS += -pthread -fPIC $(COMMON_FLAGS) $(WARNINGS)
+LINKFLAGS += -pthread -fPIC $(COMMON_FLAGS) $(WARNINGS) 
+
+# protobuf-3 and grpc additions
+CXXFLAGS += -std=c++11 -I/usr/local/include
+LINKFLAGS += -L/usr/local/lib -lprotobuf -lpthread -lgrpc++ -lgrpc -Wl,--no-as-needed -lgrpc++_reflection -Wl,--as-needed -ldl
 
 USE_PKG_CONFIG ?= 0
 ifeq ($(USE_PKG_CONFIG), 1)
@@ -584,6 +592,13 @@ $(PROTO_BUILD_DIR)/%.pb.o: $(PROTO_BUILD_DIR)/%.pb.cc $(PROTO_GEN_HEADER) \
 		|| (cat $@.$(WARNS_EXT); exit 1)
 	@ cat $@.$(WARNS_EXT)
 
+$(PROTO_BUILD_DIR)/%.grpc.pb.o: $(PROTO_BUILD_DIR)/%.grpc.pb.cc $(PROTO_GEN_HEADER) \
+		| $(PROTO_BUILD_DIR)
+	@ echo CXX $<
+	$(Q)$(CXX) $< $(CXXFLAGS) -c -o $@ 2> $@.$(WARNS_EXT) \
+		|| (cat $@.$(WARNS_EXT); exit 1)
+	@ cat $@.$(WARNS_EXT)
+
 $(BUILD_DIR)/cuda/%.o: %.cu | $(ALL_BUILD_DIRS)
 	@ echo NVCC $<
 	$(Q)$(CUDA_DIR)/bin/nvcc $(NVCCFLAGS) $(CUDA_ARCH) -M $< -o ${@:.o=.d} \
@@ -626,6 +641,11 @@ $(EXAMPLE_BINS): %.bin : %.o | $(DYNAMIC_NAME)
 		-Wl,-rpath,$(ORIGIN)/../../lib
 
 proto: $(PROTO_GEN_CC) $(PROTO_GEN_HEADER)
+
+$(PROTO_BUILD_DIR)/%.grpc.pb.cc $(PROTO_BUILD_DIR)/%.grpc.pb.h : \
+		$(PROTO_SRC_DIR)/%.proto | $(PROTO_BUILD_DIR)
+	@ echo PROTOC $<
+	$(Q)protoc -I $(PROTO_SRC_DIR) --grpc_out=$(PROTO_BUILD_DIR) --plugin=protoc-gen-grpc=$(GRPC_CPP_PLUGIN_PATH) $<
 
 $(PROTO_BUILD_DIR)/%.pb.cc $(PROTO_BUILD_DIR)/%.pb.h : \
 		$(PROTO_SRC_DIR)/%.proto | $(PROTO_BUILD_DIR)

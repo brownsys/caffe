@@ -9,7 +9,55 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
 
+#include <grpc++/grpc++.h>
+#include "caffe/proto/deepos.grpc.pb.h"
+
+using grpc::Channel;
+using grpc::ClientContext;
+using grpc::Status;
+using deepos::HelloRequest;
+using deepos::HelloReply;
+using deepos::Greeter;
+
 namespace caffe {
+
+template<typename Dtype>
+void output_accuracy(Dtype accuracy) {
+  LOG(INFO) << "** current accuracy: " << accuracy;
+
+  auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+  auto stub = deepos::Greeter::NewStub(channel);
+
+  ClientContext context;
+  HelloRequest request;
+  request.set_name("hello");
+  request.set_number(accuracy);
+  HelloReply reply;
+  Status status = stub->SayHello(&context, request, &reply);
+  if (status.ok()) {
+    LOG(INFO) << "** RPC SUCCESSFUL!";
+  } else {
+    LOG(INFO) << "** RPC FAILED :(";
+  }
+}
+
+void output_iteration(int iteration) {
+  LOG(INFO) << "** we're on interation: " << iteration;
+  auto channel = grpc::CreateChannel("localhost:50051", grpc::InsecureChannelCredentials());
+  auto stub = deepos::Greeter::NewStub(channel);
+
+  ClientContext context;
+  HelloRequest request;
+  request.set_name("hello");
+  request.set_number(iteration);
+  HelloReply reply;
+  Status status = stub->SayHello(&context, request, &reply);
+  if (status.ok()) {
+    LOG(INFO) << "** RPC SUCCESSFUL!";
+  } else {
+    LOG(INFO) << "** RPC FAILED :(";
+  }
+}
 
 template<typename Dtype>
 void Solver<Dtype>::SetActionFunction(ActionCallback func) {
@@ -227,6 +275,7 @@ void Solver<Dtype>::Step(int iters) {
     if (display) {
       LOG_IF(INFO, Caffe::root_solver()) << "Iteration " << iter_
           << ", loss = " << smoothed_loss_;
+      output_iteration(iter_);
       const vector<Blob<Dtype>*>& result = net_->output_blobs();
       int score_index = 0;
       for (int j = 0; j < result.size(); ++j) {
@@ -403,6 +452,9 @@ void Solver<Dtype>::Test(const int test_net_id) {
     }
     LOG(INFO) << "    Test net output #" << i << ": " << output_name << " = "
               << mean_score << loss_msg_stream.str();
+    if (output_name == "accuracy") {
+        output_accuracy(mean_score);
+    }
   }
 }
 
