@@ -9,7 +9,7 @@
 #include "caffe/util/io.hpp"
 #include "caffe/util/upgrade_proto.hpp"
 
-#include <caffe/deepos.hpp>
+#include <caffe/deepos_app.hpp>
 
 namespace caffe {
 
@@ -230,7 +230,7 @@ void Solver<Dtype>::Step(int iters) {
       LOG_IF(INFO, Caffe::root_solver()) << "Iteration " << iter_
           << ", loss = " << smoothed_loss_;
 
-      deepos::output_iteration(iter_);
+      deepos_app::output_iteration(iter_);
 
       const vector<Blob<Dtype>*>& result = net_->output_blobs();
       int score_index = 0;
@@ -409,7 +409,7 @@ void Solver<Dtype>::Test(const int test_net_id) {
     LOG(INFO) << "    Test net output #" << i << ": " << output_name << " = "
               << mean_score << loss_msg_stream.str();
     if (output_name == "accuracy") {
-        deepos::output_accuracy(mean_score);
+        deepos_app::output_accuracy(mean_score);
     }
   }
 }
