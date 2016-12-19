@@ -13,6 +13,7 @@ sudo apt-get update
 # General dependencies
 sudo apt-get -y install libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev
 sudo apt-get -y install --no-install-recommends libboost-all-dev
+sudo apt-get -y install libatlas-base-dev python-dev
 release=`lsb_release -r | awk '{print $2}'`
 if [ "14.04" == "$release" ]; then
   sudo apt-get -y install libgflags-dev libgoogle-glog-dev liblmdb-dev
@@ -29,6 +30,7 @@ git checkout v1.0.0
 git submodule update --init
 make
 sudo make install
+cd -
 
 # Install protobuf-3
 pbuf_version=`protoc --version | awk '{print $2}'`
@@ -43,6 +45,7 @@ if [ "3.0.0" != "$pbuf_version" ]; then
   make check
   sudo make install
   sudo ldconfig 
+  cd -
 fi
 
 # gRPC (Python)
@@ -56,5 +59,5 @@ cd caffe
 cp Makefile.config.example Makefile.config
 sed -i "s/# CPU_ONLY := 1/CPU_ONLY := 1/" Makefile.config
 make all
-
+cd -
 
