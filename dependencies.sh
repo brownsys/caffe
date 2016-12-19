@@ -14,6 +14,7 @@ sudo apt-get update
 sudo apt-get -y install libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev
 sudo apt-get -y install --no-install-recommends libboost-all-dev
 sudo apt-get -y install libatlas-base-dev python-dev
+
 release=`lsb_release -r | awk '{print $2}'`
 if [ "14.04" == "$release" ]; then
   sudo apt-get -y install libgflags-dev libgoogle-glog-dev liblmdb-dev
@@ -23,14 +24,18 @@ elif [ "16.04" != "$release" ]; then
 fi
 
 # gRPC (C++)
-sudo apt-get -y install build-essential autoconf libtool
-git clone https://github.com/grpc/grpc 
-cd grpc
-git checkout v1.0.0
-git submodule update --init
-make
-sudo make install
-cd -
+if [ `command -v grpc_cpp_plugin` ]; then
+  echo "gRPC C++ already installed";
+else
+  sudo apt-get -y install build-essential autoconf libtool
+  git clone https://github.com/grpc/grpc 
+  cd grpc
+  git checkout v1.0.0
+  git submodule update --init
+  make
+  sudo make install
+  cd -
+fi
 
 # Install protobuf-3
 pbuf_version=`protoc --version | awk '{print $2}'`
@@ -59,5 +64,7 @@ cd caffe
 cp Makefile.config.example Makefile.config
 sed -i "s/# CPU_ONLY := 1/CPU_ONLY := 1/" Makefile.config
 make all
+./data/mnist/get_mnist.sh
+./examples/mnist/create_mnist.sh
 cd -
 
