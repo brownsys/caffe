@@ -15,6 +15,8 @@ namespace bp = boost::python;
 #include "caffe/caffe.hpp"
 #include "caffe/util/signal_handler.h"
 
+#include <caffe/deepos_app.hpp>
+
 using caffe::Blob;
 using caffe::Caffe;
 using caffe::Net;
@@ -252,6 +254,7 @@ int train() {
     solver->Solve();
   }
   LOG(INFO) << "Optimization Done.";
+  deepos_app::job_complete();
   return 0;
 }
 RegisterBrewFunction(train);
