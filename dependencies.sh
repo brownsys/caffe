@@ -41,7 +41,7 @@ fi
 pbuf_version=`protoc --version | awk '{print $2}'`
 if [ "3.0.0" != "$pbuf_version" ]; then
   sudo apt-get -y remove libprotobuf-dev protobuf-compiler
-  git clone -b v3.0.0-patch git@github.com:brownsys/protobuf.git
+  git clone -b v3.0.0-patch https://github.com/brownsys/protobuf.git
   cd protobuf
   sudo apt-get -y install autoconf automake libtool curl make g++ unzip
   ./autogen.sh
@@ -59,7 +59,7 @@ sudo python -m pip install grpcio
 sudo python -m pip install grpcio-tools
 
 # DeepOS-enabled Caffe
-git clone -b deepos git@github.com:brownsys/caffe.git
+git clone -b deepos https://github.com/brownsys/caffe.git
 cd caffe
 cp Makefile.config.example Makefile.config
 sed -i "s/# CPU_ONLY := 1/CPU_ONLY := 1/" Makefile.config
