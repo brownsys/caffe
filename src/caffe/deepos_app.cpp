@@ -25,18 +25,18 @@ void output_accuracy(float accuracy) {
 }
 
 void output_iteration(int iteration) {
-  auto stub = ApplicationStats::NewStub(grpc::CreateChannel(DEEPOS_ADDRESS, grpc::InsecureChannelCredentials()));
-  ClientContext context;
-  AppStat request;
-  request.set_stat_name("iteration");
-  request.set_stat(iteration);
-  AppStatReply reply;
-  Status status = stub->SendAppStat(&context, request, &reply);
-  if (status.ok()) {
-    LOG(INFO) << "** RPC SUCCESSFUL!";
-  } else {
-    LOG(INFO) << "** RPC FAILED :(";
-  }
+  //auto stub = ApplicationStats::NewStub(grpc::CreateChannel(DEEPOS_ADDRESS, grpc::InsecureChannelCredentials()));
+  //ClientContext context;
+  //AppStat request;
+  //request.set_stat_name("iteration");
+  //request.set_stat(iteration);
+  //AppStatReply reply;
+  //Status status = stub->SendAppStat(&context, request, &reply);
+  //if (status.ok()) {
+  //  LOG(INFO) << "** RPC SUCCESSFUL!";
+  //} else {
+  //  LOG(INFO) << "** RPC FAILED :(";
+  //}
 }
 
 void job_complete() {
