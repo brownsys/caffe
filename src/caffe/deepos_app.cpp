@@ -1,5 +1,6 @@
 #include "caffe/deepos_app.hpp"
 #include <string>
+#include <sys/time.h>
 
 using grpc::ClientContext;
 using grpc::Status;
@@ -10,9 +11,14 @@ static const std::string DEEPOS_ADDRESS = "localhost:" + std::to_string(DEEPOS_N
 namespace deepos_app {
 
 void output_accuracy(float accuracy) {
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  long int epoch_ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
   auto stub = ApplicationStats::NewStub(grpc::CreateChannel(DEEPOS_ADDRESS, grpc::InsecureChannelCredentials()));
   ClientContext context;
   AppStat request;
+  request.set_timestamp(epoch_ms);
   request.set_stat_type(AppStat::ACCURACY);
   request.set_stat(accuracy);
   AppStatReply reply;
@@ -40,9 +46,14 @@ void output_iteration(int iteration) {
 }
 
 void job_complete() {
+  struct timeval tp;
+  gettimeofday(&tp, NULL);
+  long int epoch_ms = tp.tv_sec * 1000 + tp.tv_usec / 1000;
+
   auto stub = ApplicationStats::NewStub(grpc::CreateChannel(DEEPOS_ADDRESS, grpc::InsecureChannelCredentials()));
   ClientContext context;
   AppStat request;
+  request.set_timestamp(epoch_ms);
   request.set_stat_type(AppStat::JOB_COMPLETE);
   AppStatReply reply;
   Status status = stub->SendAppStat(&context, request, &reply);

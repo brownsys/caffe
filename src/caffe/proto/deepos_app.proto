@@ -16,6 +16,7 @@ message AppStat {
   }
   StatType stat_type = 1;
   float stat = 2;
+  int64 timestamp = 3;
 }
 
 message AppStatReply {
