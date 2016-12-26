@@ -7,7 +7,14 @@ service ApplicationStats {
 }
 
 message AppStat {
-  string stat_name = 1;
+  enum StatType {
+    ACCURACY = 0;
+    ITERATION = 1;
+    JOB_COMPLETE = 2;
+    JOB_FAILED = 3;
+    FPEXCEPTION = 4;
+  }
+  StatType stat_type = 1;
   float stat = 2;
 }
 

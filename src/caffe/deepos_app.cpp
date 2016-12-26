@@ -13,7 +13,7 @@ void output_accuracy(float accuracy) {
   auto stub = ApplicationStats::NewStub(grpc::CreateChannel(DEEPOS_ADDRESS, grpc::InsecureChannelCredentials()));
   ClientContext context;
   AppStat request;
-  request.set_stat_name("accuracy");
+  request.set_stat_type(AppStat::ACCURACY);
   request.set_stat(accuracy);
   AppStatReply reply;
   Status status = stub->SendAppStat(&context, request, &reply);
@@ -43,7 +43,7 @@ void job_complete() {
   auto stub = ApplicationStats::NewStub(grpc::CreateChannel(DEEPOS_ADDRESS, grpc::InsecureChannelCredentials()));
   ClientContext context;
   AppStat request;
-  request.set_stat_name("job_complete");
+  request.set_stat_type(AppStat::JOB_COMPLETE);
   AppStatReply reply;
   Status status = stub->SendAppStat(&context, request, &reply);
   if (status.ok()) {
