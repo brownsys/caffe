@@ -2,7 +2,7 @@
 
 Forked version of [Caffe](https://github.com/BVLC/caffe) that supports reporting application stats to DeepOS scheduler
 
-## Modified Dependencies
+## Additional/Modified Dependencies
 
 gRPC v1.0.0 ([C++](http://www.grpc.io/docs/quickstart/cpp.html) and [Python](http://www.grpc.io/docs/quickstart/python.html))
 
