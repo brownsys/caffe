@@ -17,6 +17,11 @@ message AppStat {
   StatType stat_type = 1;
   float stat = 2;
   int64 timestamp = 3;
+  enum Application {
+    CAFFE = 0;
+    TENSORFLOW = 1;
+  }
+  Application application = 4;
 }
 
 message AppStatReply {

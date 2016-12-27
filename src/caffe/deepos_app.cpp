@@ -21,6 +21,7 @@ void output_accuracy(float accuracy) {
   request.set_timestamp(epoch_ms);
   request.set_stat_type(AppStat::ACCURACY);
   request.set_stat(accuracy);
+  request.set_application(AppStat::CAFFE);
   AppStatReply reply;
   Status status = stub->SendAppStat(&context, request, &reply);
   if (status.ok()) {
@@ -55,6 +56,7 @@ void job_complete() {
   AppStat request;
   request.set_timestamp(epoch_ms);
   request.set_stat_type(AppStat::JOB_COMPLETE);
+  request.set_application(AppStat::CAFFE);
   AppStatReply reply;
   Status status = stub->SendAppStat(&context, request, &reply);
   if (status.ok()) {
